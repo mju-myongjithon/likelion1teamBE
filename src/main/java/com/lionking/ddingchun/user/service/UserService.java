@@ -1,8 +1,8 @@
 package com.lionking.ddingchun.user.service;
 
-import com.lionking.ddingchun.auth.exception.EmailNotVerifiedException;
 import com.lionking.ddingchun.auth.service.EmailVerificationService;
 import com.lionking.ddingchun.user.dto.UserProfileRequest;
+import com.lionking.ddingchun.user.dto.UserProfileResponse;
 import com.lionking.ddingchun.user.dto.UserTagsRequest;
 import com.lionking.ddingchun.user.entity.Campus;
 import com.lionking.ddingchun.user.entity.College;
@@ -10,6 +10,7 @@ import com.lionking.ddingchun.user.entity.Course;
 import com.lionking.ddingchun.user.entity.InterestTag;
 import com.lionking.ddingchun.user.entity.User;
 import com.lionking.ddingchun.user.exception.DuplicateEmailException;
+import com.lionking.ddingchun.user.exception.EmailNotVerifiedException;
 import com.lionking.ddingchun.user.exception.InvalidUserFieldException;
 import com.lionking.ddingchun.user.exception.UserNotFoundException;
 import com.lionking.ddingchun.user.repository.UserRepository;
@@ -59,6 +60,14 @@ public class UserService {
                 .orElseThrow(UserNotFoundException::new);
 
         user.updateTags(toInterestTags(request.tags()));
+    }
+
+    @Transactional(readOnly = true)
+    public UserProfileResponse getProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
+
+        return UserProfileResponse.from(user);
     }
 
     private List<InterestTag> toInterestTags(List<String> rawTags) {

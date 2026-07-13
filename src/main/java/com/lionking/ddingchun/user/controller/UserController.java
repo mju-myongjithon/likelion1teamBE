@@ -2,6 +2,7 @@ package com.lionking.ddingchun.user.controller;
 
 import com.lionking.ddingchun.global.response.ApiResponse;
 import com.lionking.ddingchun.user.dto.UserProfileRequest;
+import com.lionking.ddingchun.user.dto.UserProfileResponse;
 import com.lionking.ddingchun.user.dto.UserTagsRequest;
 import com.lionking.ddingchun.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -36,6 +37,16 @@ public class UserController {
         userService.saveTags(request);
 
         return new ApiResponse<>(true, "COMMON200", "관심 태그가 저장되었습니다.", null);
+    }
+
+    @Operation(summary = "내 정보 조회")
+    @GetMapping("/me")
+    public ApiResponse<UserProfileResponse> getMe(
+            @RequestParam String email
+    ) {
+        UserProfileResponse response = userService.getProfile(email);
+
+        return new ApiResponse<>(true, "COMMON200", "내 정보 조회 성공", response);
     }
 
 }

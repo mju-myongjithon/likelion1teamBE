@@ -24,6 +24,10 @@ public enum College {
         this.label = label;
     }
 
+    public String getLabel() {
+        return label;
+    }
+
     public static College fromLabel(String label) {
         return Arrays.stream(values())
                 .filter(college -> college.label.equals(label))
