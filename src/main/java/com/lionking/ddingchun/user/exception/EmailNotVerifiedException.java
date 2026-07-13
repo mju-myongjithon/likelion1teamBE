@@ -1,4 +1,4 @@
-package com.lionking.ddingchun.auth.exception;
+package com.lionking.ddingchun.user.exception;
 
 import com.lionking.ddingchun.global.exception.BusinessException;
 import org.springframework.http.HttpStatus;

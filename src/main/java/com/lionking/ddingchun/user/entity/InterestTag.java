@@ -21,6 +21,10 @@ public enum InterestTag {
         this.label = label;
     }
 
+    public String getLabel() {
+        return label;
+    }
+
     public static InterestTag fromLabel(String label) {
         return Arrays.stream(values())
                 .filter(tag -> tag.label.equals(label))
