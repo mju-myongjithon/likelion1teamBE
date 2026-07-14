@@ -7,7 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    /*
+     * 마이페이지에 노출할, 내가 작성한 모집글 목록
+     */
+    List<Post> findByAuthor_IdOrderByCreatedAtDesc(Long authorId);
 
     /*
      * 제목, 본문, 태그 중 하나라도 검색어를 포함하면 조회한다.
