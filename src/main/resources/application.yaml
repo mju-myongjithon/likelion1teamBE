@@ -10,9 +10,9 @@ spring:
     active: local
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/ddingchun
-    username: postgres
-    password: 1027
+    url: jdbc:postgresql://localhost:{PORT}/{DB_NAME}
+    username: {USERNAME}
+    password: {PASSWORD}
     driver-class-name: org.postgresql.Driver
 
   jpa:
