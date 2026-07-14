@@ -8,6 +8,8 @@ import com.lionking.ddingchun.auth.exception.InvalidSchoolEmailException;
 import com.lionking.ddingchun.auth.repository.EmailVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ public class EmailVerificationService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final EmailVerificationRepository emailVerificationRepository;
+    private final JavaMailSender mailSender;
 
     @Transactional
     public void sendVerificationCode(String rawEmail) {
@@ -39,8 +42,18 @@ public class EmailVerificationService {
                         () -> emailVerificationRepository.save(new EmailVerification(email, code, expiresAt))
                 );
 
-        // TODO: 실제 메일 발송(SMTP) 연동 전까지는 콘솔 로그로 대체
-        log.info("[학교 이메일 인증] {} 로 인증번호 {} 발송 (유효시간 {}분)", email, code, CODE_EXPIRE_MINUTES);
+        sendMail(email, code);
+    }
+
+    private void sendMail(String email, String code) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("[띵춘] 이메일 인증번호");
+        message.setText("인증번호는 [%s] 입니다. %d분 이내에 입력해주세요.".formatted(code, CODE_EXPIRE_MINUTES));
+
+        mailSender.send(message);
+
+        log.info("[학교 이메일 인증] {} 로 인증 메일 발송 완료", email);
     }
 
     @Transactional
