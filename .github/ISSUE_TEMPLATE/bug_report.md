@@ -4,6 +4,7 @@ about: 버그를 발견했을 때 사용해주세요
 title: "[BUG] "
 labels: bug
 assignees: ''
+
 ---
 
 ## 버그 설명
