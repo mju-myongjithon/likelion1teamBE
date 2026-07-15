@@ -19,7 +19,7 @@ public class SearchController {
 
     private final SearchService searchService;
 
-    @Operation(summary = "모집글 통합 검색")
+    @Operation(summary = "모집글 및 학교 공지 통합 검색")
     @GetMapping
     public ApiResponse<SearchResponse> search(
             @RequestParam String keyword,

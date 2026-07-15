@@ -5,6 +5,8 @@ import com.lionking.ddingchun.post.entity.Post;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import com.lionking.ddingchun.crawler.domain.Notice;
+import com.lionking.ddingchun.crawler.domain.NoticeAiTagging;
 
 public record SearchResultItem(
 
@@ -36,6 +38,28 @@ public record SearchResultItem(
                 post.getMaxCount()
         );
     }
+    public static SearchResultItem fromNoticeAiTagging(
+        NoticeAiTagging tagging
+) {
+    Notice notice = tagging.getNotice();
+
+    List<String> tags =
+            tagging.getTags() == null
+                    ? List.of()
+                    : List.copyOf(tagging.getTags());
+
+    return new SearchResultItem(
+            "NOTICE",
+            notice.getId(),
+            notice.getTitle(),
+            tagging.getAiCategory(),
+            notice.getSource(),
+            null,
+            tags,
+            null,
+            null
+    );
+}
 
     private static int calculateDday(Post post) {
         LocalDate today = LocalDate.now();
