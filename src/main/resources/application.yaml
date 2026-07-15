@@ -9,12 +9,6 @@ spring:
   profiles:
     active: local
 
-  datasource:
-    url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${POSTGRES_DB:ddingchun}
-    username: ${POSTGRES_USER:postgres}
-    password: ${POSTGRES_PASSWORD:postgres}
-    driver-class-name: org.postgresql.Driver
-
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,3 +28,27 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+---
+# 로컬 개발 (IntelliJ에서 직접 실행할 때)
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:ddingchun}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+---
+# 배포 서버 (Docker Compose로 실행할 때)
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${POSTGRES_DB:ddingchun}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
