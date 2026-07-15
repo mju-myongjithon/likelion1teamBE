@@ -1,8 +1,8 @@
 package com.lionking.ddingchun.user.controller;
 
 import com.lionking.ddingchun.global.response.ApiResponse;
+import com.lionking.ddingchun.user.dto.MyPageResponse;
 import com.lionking.ddingchun.user.dto.UserProfileRequest;
-import com.lionking.ddingchun.user.dto.UserProfileResponse;
 import com.lionking.ddingchun.user.dto.UserTagsRequest;
 import com.lionking.ddingchun.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -39,14 +39,14 @@ public class UserController {
         return new ApiResponse<>(true, "COMMON200", "관심 태그가 저장되었습니다.", null);
     }
 
-    @Operation(summary = "내 정보 조회")
-    @GetMapping("/me")
-    public ApiResponse<UserProfileResponse> getMe(
+    @Operation(summary = "마이페이지 조회")
+    @GetMapping("/mypage")
+    public ApiResponse<MyPageResponse> getMyPage(
             @RequestParam String email
     ) {
-        UserProfileResponse response = userService.getProfile(email);
+        MyPageResponse response = userService.getMyPage(email);
 
-        return new ApiResponse<>(true, "COMMON200", "내 정보 조회 성공", response);
+        return new ApiResponse<>(true, "COMMON200", "마이페이지 조회에 성공했습니다.", response);
     }
 
 }
