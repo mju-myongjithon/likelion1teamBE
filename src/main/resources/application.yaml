@@ -10,9 +10,9 @@ spring:
     active: local
 
   datasource:
-    url: jdbc:postgresql://localhost:${POSTGRES_PORT}/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+    url: jdbc:postgresql://localhost:{$POSTGRE_PORT}/{$POSTGRE_DB}
+    username: {$POSTGRE_USERNAME}
+    password: {$POSTGRE_PW}
     driver-class-name: org.postgresql.Driver
 
   mail:

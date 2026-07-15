@@ -12,6 +12,7 @@ import java.util.List;
 public record MyPageResponse(
 
         String email,
+        String name,
         String department,
         String campus,
         List<String> interestTags,
@@ -33,6 +34,7 @@ public record MyPageResponse(
 
         return new MyPageResponse(
                 user.getEmail(),
+                user.getName(),
                 user.getDepartment(),
                 user.getCampus().getLabel(),
                 user.getTags().stream().map(InterestTag::getLabel).toList(),

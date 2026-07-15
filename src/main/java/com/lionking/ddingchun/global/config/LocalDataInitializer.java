@@ -89,6 +89,7 @@ public class LocalDataInitializer implements CommandLineRunner {
                         userRepository.save(
                                 User.builder()
                                         .email(AUTHOR_EMAIL)
+                                        .name("홍길동")
                                         .course(Course.UNDERGRADUATE)
                                         .campus(Campus.NATURAL_SCIENCE)
                                         .college(
@@ -113,6 +114,7 @@ public class LocalDataInitializer implements CommandLineRunner {
                         userRepository.save(
                                 User.builder()
                                         .email(APPLICANT_EMAIL)
+                                        .name("김영희")
                                         .course(Course.UNDERGRADUATE)
                                         .campus(Campus.HUMANITIES)
                                         .college(College.BUSINESS)
