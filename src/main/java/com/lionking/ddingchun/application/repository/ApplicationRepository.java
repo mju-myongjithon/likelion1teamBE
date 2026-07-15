@@ -19,4 +19,11 @@ public interface ApplicationRepository
     List<Application> findByApplicant_IdOrderByAppliedAtDesc(
             Long applicantId
     );
+
+    /*
+     * 신청자 목록 조회 (작성자 전용)
+     */
+    List<Application> findByPost_IdOrderByAppliedAtDesc(
+            Long postId
+    );
 }

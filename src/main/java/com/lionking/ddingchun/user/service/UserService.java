@@ -51,6 +51,7 @@ public class UserService {
 
         User user = User.builder()
                 .email(request.email())
+                .name(request.name())
                 .course(Course.fromLabel(request.course()))
                 .campus(Campus.fromLabel(request.campus()))
                 .college(College.fromLabel(request.college()))
