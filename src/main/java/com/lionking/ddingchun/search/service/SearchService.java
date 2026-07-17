@@ -17,12 +17,28 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class SearchService {
 
     private static final int MAX_PAGE_SIZE = 100;
+
+    /*
+     * 관심 태그(한글) 클릭 검색이 학교 공지의 AI 카테고리(영문)에도
+     * 걸리도록 하는 매핑. Gemini가 생성하는 자유 태그 문구가 제각각이라
+     * 제목/요약/태그 LIKE 검색만으로는 같은 카테고리 공지를 다 못 찾는 문제를 보완한다.
+     */
+    private static final Map<String, String> CATEGORY_KEYWORD_MAP =
+            Map.of(
+                    "공모전", "CONTEST",
+                    "장학금", "SCHOLARSHIP",
+                    "축제", "FESTIVAL",
+                    "동아리", "CLUB",
+                    "전시", "EXHIBITION",
+                    "취업", "CAREER"
+            );
 
     private final PostRepository postRepository;
     private final NoticeAiTaggingRepository noticeAiTaggingRepository;
@@ -71,10 +87,14 @@ public class SearchService {
         /*
          * Gemini 태깅이 완료된 학교 공지 검색
          */
+        String category =
+                CATEGORY_KEYWORD_MAP.get(normalizedKeyword);
+
         combinedResults.addAll(
                 noticeAiTaggingRepository
                         .searchByKeyword(
                                 normalizedKeyword,
+                                category,
                                 TaggingStatus.COMPLETED
                         )
                         .stream()
