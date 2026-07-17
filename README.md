@@ -1,9 +1,10 @@
-# 띵춘
+# 🌸띵춘🌸
 
 명지톤 2026 | 인문캠 x 자연캠 연합 해커톤 | 🦁 라이언킹 / 1조 프론트 레포
 
 **흩어진 학교 정보를 모아, 인문캠과 자연캠을 잇는 AI 기반 정보·교류 플랫폼**
 
+<img width="1088" height="558" alt="image" src="https://github.com/user-attachments/assets/e4238641-79a8-4e6a-ae1a-a50b96d867ce" />
 
 
 
