@@ -8,6 +8,7 @@ import com.lionking.ddingchun.application.entity.Application;
 import com.lionking.ddingchun.application.entity.ApplicationStatus;
 import com.lionking.ddingchun.application.exception.*;
 import com.lionking.ddingchun.application.repository.ApplicationRepository;
+import com.lionking.ddingchun.chat.service.ChatService;
 import com.lionking.ddingchun.post.entity.Post;
 import com.lionking.ddingchun.post.entity.PostStatus;
 import com.lionking.ddingchun.post.exception.PostNotFoundException;
@@ -28,6 +29,7 @@ public class ApplicationService {
     private final ApplicationRepository applicationRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final ChatService chatService;
 
     @Transactional
     public ApplicationCreateResponse apply(
@@ -162,6 +164,7 @@ public class ApplicationService {
                 throw new PostClosedException();
             }
             application.accept();
+            chatService.addAcceptedApplicant(post, application.getApplicant());
         } else {
             application.reject();
         }

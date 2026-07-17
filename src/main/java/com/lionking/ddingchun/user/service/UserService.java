@@ -6,6 +6,7 @@ import com.lionking.ddingchun.auth.service.EmailVerificationService;
 import com.lionking.ddingchun.post.entity.Post;
 import com.lionking.ddingchun.post.repository.PostRepository;
 import com.lionking.ddingchun.user.dto.MyPageResponse;
+import com.lionking.ddingchun.user.dto.UserProfileCreateResponse;
 import com.lionking.ddingchun.user.dto.UserProfileRequest;
 import com.lionking.ddingchun.user.dto.UserTagsRequest;
 import com.lionking.ddingchun.user.entity.Campus;
@@ -40,7 +41,7 @@ public class UserService {
     private final ApplicationRepository applicationRepository;
 
     @Transactional
-    public void saveProfile(UserProfileRequest request) {
+    public UserProfileCreateResponse saveProfile(UserProfileRequest request) {
         if (!emailVerificationService.isVerified(request.email())) {
             throw new EmailNotVerifiedException();
         }
@@ -60,7 +61,9 @@ public class UserService {
                 .tags(List.of())
                 .build();
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+        return UserProfileCreateResponse.from(savedUser);
     }
 
     @Transactional

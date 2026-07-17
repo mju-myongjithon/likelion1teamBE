@@ -1,5 +1,6 @@
 package com.lionking.ddingchun.bookmark.service;
 
+import com.lionking.ddingchun.bookmark.dto.BookmarkStatusResponse;
 import com.lionking.ddingchun.bookmark.dto.MyBookmarkItemResponse;
 import com.lionking.ddingchun.bookmark.dto.MyBookmarkListResponse;
 import com.lionking.ddingchun.bookmark.entity.Bookmark;
@@ -11,6 +12,8 @@ import com.lionking.ddingchun.crawler.domain.Notice;
 import com.lionking.ddingchun.crawler.repository.NoticeRepository;
 import com.lionking.ddingchun.post.entity.Post;
 import com.lionking.ddingchun.post.repository.PostRepository;
+import com.lionking.ddingchun.user.entity.User;
+import com.lionking.ddingchun.user.exception.UserNotFoundException;
 import com.lionking.ddingchun.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,11 +38,11 @@ public class BookmarkService {
      */
     @Transactional
     public Bookmark addBookmark(
-            Long userId,
+            String email,
             BookmarkTargetType targetType,
             Long targetId
     ) {
-        validateUser(userId);
+        Long userId = resolveUserId(email);
         validateTarget(targetType, targetId);
 
         return bookmarkRepository
@@ -63,12 +66,12 @@ public class BookmarkService {
      * 모집글 또는 공지의 찜을 해제한다.
      */
     @Transactional
-    public void removeBookmark(
-            Long userId,
+    public Long removeBookmark(
+            String email,
             BookmarkTargetType targetType,
             Long targetId
     ) {
-        validateUser(userId);
+        Long userId = resolveUserId(email);
 
         bookmarkRepository
                 .deleteByUserIdAndTargetTypeAndTargetId(
@@ -76,25 +79,34 @@ public class BookmarkService {
                         targetType,
                         targetId
                 );
+
+        return userId;
     }
 
     /**
      * 특정 모집글 또는 공지를 찜했는지 확인한다.
      */
     @Transactional(readOnly = true)
-    public boolean isBookmarked(
-            Long userId,
+    public BookmarkStatusResponse isBookmarked(
+            String email,
             BookmarkTargetType targetType,
             Long targetId
     ) {
-        validateUser(userId);
+        Long userId = resolveUserId(email);
 
-        return bookmarkRepository
+        boolean bookmarked = bookmarkRepository
                 .existsByUserIdAndTargetTypeAndTargetId(
                         userId,
                         targetType,
                         targetId
                 );
+
+        return new BookmarkStatusResponse(
+                userId,
+                targetType,
+                targetId,
+                bookmarked
+        );
     }
 
     /**
@@ -111,11 +123,11 @@ public class BookmarkService {
      */
     @Transactional(readOnly = true)
     public MyBookmarkListResponse getMyBookmarkList(
-            Long userId,
+            String email,
             BookmarkFilterType type,
             BookmarkSortType sort
     ) {
-        validateUser(userId);
+        Long userId = resolveUserId(email);
 
         BookmarkFilterType safeType =
                 type == null
@@ -271,19 +283,14 @@ public class BookmarkService {
         return dday;
     }
 
-    private void validateUser(Long userId) {
-        if (userId == null) {
-            throw new IllegalArgumentException(
-                    "사용자 ID는 필수입니다."
-            );
-        }
+    /*
+     * 이메일로 사용자를 찾아 내부 식별에 쓰는 userId를 얻는다.
+     */
+    private Long resolveUserId(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(UserNotFoundException::new);
 
-        if (!userRepository.existsById(userId)) {
-            throw new IllegalArgumentException(
-                    "존재하지 않는 사용자입니다. userId="
-                            + userId
-            );
-        }
+        return user.getId();
     }
 
     private void validateTarget(

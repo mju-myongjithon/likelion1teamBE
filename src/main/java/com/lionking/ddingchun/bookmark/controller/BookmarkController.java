@@ -28,12 +28,12 @@ public class BookmarkController {
     /**
      * 마이페이지 찜 목록 조회
      *
-     * GET /api/bookmarks?userId=1&type=ALL&sort=DEADLINE
+     * GET /api/bookmarks?email=a@mju.ac.kr&type=ALL&sort=DEADLINE
      */
     @Operation(summary = "마이페이지 찜 목록 조회")
     @GetMapping
     public ApiResponse<MyBookmarkListResponse> getMyBookmarks(
-            @RequestParam Long userId,
+            @RequestParam String email,
             @RequestParam(defaultValue = "ALL")
             BookmarkFilterType type,
             @RequestParam(defaultValue = "DEADLINE")
@@ -41,7 +41,7 @@ public class BookmarkController {
     ) {
         MyBookmarkListResponse response =
                 bookmarkService.getMyBookmarkList(
-                        userId,
+                        email,
                         type,
                         sort
                 );
@@ -57,17 +57,17 @@ public class BookmarkController {
     /**
      * 모집글 찜 추가
      *
-     * POST /api/bookmarks/posts/1?userId=1
+     * POST /api/bookmarks/posts/1?email=a@mju.ac.kr
      */
     @Operation(summary = "모집글 찜 추가")
     @PostMapping("/posts/{postId}")
     public ApiResponse<BookmarkActionResponse> addPostBookmark(
             @PathVariable Long postId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
         Bookmark bookmark =
                 bookmarkService.addBookmark(
-                        userId,
+                        email,
                         BookmarkTargetType.POST,
                         postId
                 );
@@ -83,16 +83,16 @@ public class BookmarkController {
     /**
      * 모집글 찜 취소
      *
-     * DELETE /api/bookmarks/posts/1?userId=1
+     * DELETE /api/bookmarks/posts/1?email=a@mju.ac.kr
      */
     @Operation(summary = "모집글 찜 취소")
     @DeleteMapping("/posts/{postId}")
     public ApiResponse<BookmarkActionResponse> removePostBookmark(
             @PathVariable Long postId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
-        bookmarkService.removeBookmark(
-                userId,
+        Long userId = bookmarkService.removeBookmark(
+                email,
                 BookmarkTargetType.POST,
                 postId
         );
@@ -112,28 +112,20 @@ public class BookmarkController {
     /**
      * 모집글 찜 여부 확인
      *
-     * GET /api/bookmarks/posts/1/status?userId=1
+     * GET /api/bookmarks/posts/1/status?email=a@mju.ac.kr
      */
     @Operation(summary = "모집글 찜 여부 확인")
     @GetMapping("/posts/{postId}/status")
     public ApiResponse<BookmarkStatusResponse>
     getPostBookmarkStatus(
             @PathVariable Long postId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
-        boolean bookmarked =
+        BookmarkStatusResponse response =
                 bookmarkService.isBookmarked(
-                        userId,
+                        email,
                         BookmarkTargetType.POST,
                         postId
-                );
-
-        BookmarkStatusResponse response =
-                new BookmarkStatusResponse(
-                        userId,
-                        BookmarkTargetType.POST,
-                        postId,
-                        bookmarked
                 );
 
         return new ApiResponse<>(
@@ -147,17 +139,17 @@ public class BookmarkController {
     /**
      * 학교 공지 찜 추가
      *
-     * POST /api/bookmarks/notices/1?userId=1
+     * POST /api/bookmarks/notices/1?email=a@mju.ac.kr
      */
     @Operation(summary = "학교 공지 찜 추가")
     @PostMapping("/notices/{noticeId}")
     public ApiResponse<BookmarkActionResponse> addNoticeBookmark(
             @PathVariable Long noticeId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
         Bookmark bookmark =
                 bookmarkService.addBookmark(
-                        userId,
+                        email,
                         BookmarkTargetType.NOTICE,
                         noticeId
                 );
@@ -173,17 +165,17 @@ public class BookmarkController {
     /**
      * 학교 공지 찜 취소
      *
-     * DELETE /api/bookmarks/notices/1?userId=1
+     * DELETE /api/bookmarks/notices/1?email=a@mju.ac.kr
      */
     @Operation(summary = "학교 공지 찜 취소")
     @DeleteMapping("/notices/{noticeId}")
     public ApiResponse<BookmarkActionResponse>
     removeNoticeBookmark(
             @PathVariable Long noticeId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
-        bookmarkService.removeBookmark(
-                userId,
+        Long userId = bookmarkService.removeBookmark(
+                email,
                 BookmarkTargetType.NOTICE,
                 noticeId
         );
@@ -203,28 +195,20 @@ public class BookmarkController {
     /**
      * 학교 공지 찜 여부 확인
      *
-     * GET /api/bookmarks/notices/1/status?userId=1
+     * GET /api/bookmarks/notices/1/status?email=a@mju.ac.kr
      */
     @Operation(summary = "학교 공지 찜 여부 확인")
     @GetMapping("/notices/{noticeId}/status")
     public ApiResponse<BookmarkStatusResponse>
     getNoticeBookmarkStatus(
             @PathVariable Long noticeId,
-            @RequestParam Long userId
+            @RequestParam String email
     ) {
-        boolean bookmarked =
+        BookmarkStatusResponse response =
                 bookmarkService.isBookmarked(
-                        userId,
+                        email,
                         BookmarkTargetType.NOTICE,
                         noticeId
-                );
-
-        BookmarkStatusResponse response =
-                new BookmarkStatusResponse(
-                        userId,
-                        BookmarkTargetType.NOTICE,
-                        noticeId,
-                        bookmarked
                 );
 
         return new ApiResponse<>(
