@@ -33,11 +33,13 @@ public interface NoticeAiTaggingRepository
                     like lower(concat('%', :keyword, '%'))
              or lower(tag)
                     like lower(concat('%', :keyword, '%'))
+             or (:category is not null and tagging.aiCategory = :category)
           )
         order by tagging.taggedAt desc
         """)
 List<NoticeAiTagging> searchByKeyword(
         @Param("keyword") String keyword,
+        @Param("category") String category,
         @Param("status") TaggingStatus status
 );
 }

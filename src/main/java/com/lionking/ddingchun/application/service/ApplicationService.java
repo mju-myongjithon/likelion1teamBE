@@ -2,10 +2,11 @@ package com.lionking.ddingchun.application.service;
 
 import com.lionking.ddingchun.application.dto.ApplicationCreateRequest;
 import com.lionking.ddingchun.application.dto.ApplicationCreateResponse;
+import com.lionking.ddingchun.application.dto.ApplicationStatusUpdateResponse;
+import com.lionking.ddingchun.application.dto.PostApplicantsResponse;
 import com.lionking.ddingchun.application.entity.Application;
-import com.lionking.ddingchun.application.exception.DuplicateApplicationException;
-import com.lionking.ddingchun.application.exception.PostClosedException;
-import com.lionking.ddingchun.application.exception.SelfApplicationException;
+import com.lionking.ddingchun.application.entity.ApplicationStatus;
+import com.lionking.ddingchun.application.exception.*;
 import com.lionking.ddingchun.application.repository.ApplicationRepository;
 import com.lionking.ddingchun.post.entity.Post;
 import com.lionking.ddingchun.post.entity.PostStatus;
@@ -17,6 +18,8 @@ import com.lionking.ddingchun.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -99,5 +102,79 @@ public class ApplicationService {
         }
 
         return introduction.trim();
+    }
+
+    /*
+     * 신청자 목록 조회 (작성자 전용)
+     */
+    @Transactional(readOnly = true)
+    public PostApplicantsResponse getApplicants(
+            Long postId,
+            String requesterEmail
+    ) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(UserNotFoundException::new);
+
+        validatePostAuthor(post, requester);
+
+        List<Application> applications =
+                applicationRepository.findByPost_IdOrderByAppliedAtDesc(postId);
+
+        return PostApplicantsResponse.of(post, applications);
+    }
+
+    /*
+     * 신청 수락/거절 (작성자 전용)
+     */
+    @Transactional
+    public ApplicationStatusUpdateResponse updateStatus(
+            Long postId,
+            Long applicationId,
+            String requesterEmail,
+            ApplicationStatus newStatus
+    ) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(PostNotFoundException::new);
+
+        User requester = userRepository.findByEmail(requesterEmail)
+                .orElseThrow(UserNotFoundException::new);
+
+        validatePostAuthor(post, requester);
+
+        Application application = applicationRepository.findById(applicationId)
+                .orElseThrow(ApplicationNotFoundException::new);
+
+        if (!application.getPost().getId().equals(postId)) {
+            throw new ApplicationNotFoundException();
+        }
+
+        if (application.getStatus() != ApplicationStatus.PENDING) {
+            throw new AlreadyProcessedApplicationException();
+        }
+
+        if (newStatus == ApplicationStatus.ACCEPTED) {
+            try {
+                post.acceptApplicant();
+            } catch (IllegalStateException e) {
+                throw new PostClosedException();
+            }
+            application.accept();
+        } else {
+            application.reject();
+        }
+
+        return ApplicationStatusUpdateResponse.from(application);
+    }
+
+    private void validatePostAuthor(
+            Post post,
+            User requester
+    ) {
+        if (!post.getAuthor().getId().equals(requester.getId())) {
+            throw new NotPostAuthorException();
+        }
     }
 }

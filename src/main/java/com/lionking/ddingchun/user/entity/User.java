@@ -21,6 +21,9 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    @Column(nullable = false, length = 10)
+    private String name;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Course course;
@@ -46,8 +49,9 @@ public class User {
     private List<InterestTag> tags = new ArrayList<>();
 
     @Builder
-    public User(String email, Course course, Campus campus, College college, String department, String studentId, List<InterestTag> tags) {
+    public User(String email, String name, Course course, Campus campus, College college, String department, String studentId, List<InterestTag> tags) {
         this.email = email;
+        this.name = name;
         this.course = course;
         this.campus = campus;
         this.college = college;
