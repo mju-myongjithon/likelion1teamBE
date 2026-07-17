@@ -121,10 +121,3 @@ com.lionking.ddingchun
 2. `docker-compose up -d`로 로컬 PostgreSQL 실행
 3. `./gradlew bootRun`으로 서버 실행 (기본 포트 8080, context-path `/api`)
 4. `http://localhost:8080/api/swagger-ui/index.html`에서 API 문서 확인
-
----
-
-# 8. :pencil2: 추가 정보 (있어도 그만 없어도 그만)
-- [인스타그램 주소]()
-- 이메일 주소 : 
-- [깃허브 레포지토리]()
