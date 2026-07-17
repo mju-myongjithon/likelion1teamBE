@@ -6,13 +6,19 @@ import com.lionking.ddingchun.auth.exception.EmailCodeMismatchException;
 import com.lionking.ddingchun.auth.exception.EmailVerificationNotFoundException;
 import com.lionking.ddingchun.auth.exception.InvalidSchoolEmailException;
 import com.lionking.ddingchun.auth.repository.EmailVerificationRepository;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StreamUtils;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.LocalDateTime;
 
@@ -24,6 +30,9 @@ public class EmailVerificationService {
     private static final String SCHOOL_EMAIL_DOMAIN = "@mju.ac.kr";
     private static final long CODE_EXPIRE_MINUTES = 5;
     private static final SecureRandom RANDOM = new SecureRandom();
+
+    private static final String EMAIL_TEMPLATE_PATH = "templates/verification-email.html";
+    private static final String EMAIL_LOGO_PATH = "static/images/ddingchun_logo.png";
 
     private final EmailVerificationRepository emailVerificationRepository;
     private final JavaMailSender mailSender;
@@ -46,14 +55,38 @@ public class EmailVerificationService {
     }
 
     private void sendMail(String email, String code) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
-        message.setSubject("[띵춘] 이메일 인증번호");
-        message.setText("인증번호는 [%s] 입니다. %d분 이내에 입력해주세요.".formatted(code, CODE_EXPIRE_MINUTES));
+        MimeMessage message = mailSender.createMimeMessage();
+
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(email);
+            helper.setSubject("[띵춘] 이메일 인증번호");
+            helper.setText(buildHtmlBody(code), true);
+            helper.addInline("logo", new ClassPathResource(EMAIL_LOGO_PATH), "image/png");
+        } catch (MessagingException exception) {
+            throw new IllegalStateException("인증 메일을 만드는 중 오류가 발생했습니다.", exception);
+        }
 
         mailSender.send(message);
 
         log.info("[학교 이메일 인증] {} 로 인증 메일 발송 완료", email);
+    }
+
+    private String buildHtmlBody(String code) {
+        String template;
+
+        try {
+            template = StreamUtils.copyToString(
+                    new ClassPathResource(EMAIL_TEMPLATE_PATH).getInputStream(),
+                    StandardCharsets.UTF_8
+            );
+        } catch (IOException exception) {
+            throw new IllegalStateException("인증 메일 템플릿을 읽지 못했습니다.", exception);
+        }
+
+        return template
+                .replace("{{CODE}}", code)
+                .replace("{{MINUTES}}", String.valueOf(CODE_EXPIRE_MINUTES));
     }
 
     @Transactional
