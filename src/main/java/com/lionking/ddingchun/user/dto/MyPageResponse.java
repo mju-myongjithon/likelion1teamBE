@@ -11,6 +11,7 @@ import java.util.List;
 
 public record MyPageResponse(
 
+        Long userId,
         String email,
         String name,
         String department,
@@ -33,6 +34,7 @@ public record MyPageResponse(
                 .count();
 
         return new MyPageResponse(
+                user.getId(),
                 user.getEmail(),
                 user.getName(),
                 user.getDepartment(),
