@@ -9,12 +9,6 @@ spring:
   profiles:
     active: local
 
-  datasource:
-    url: jdbc:postgresql://localhost:{$POSTGRE_PORT}/{$POSTGRE_DB}
-    username: {$POSTGRE_USERNAME}
-    password: {$POSTGRE_PW}
-    driver-class-name: org.postgresql.Driver
-
   mail:
     host: smtp.gmail.com
     port: 587
@@ -34,3 +28,29 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+gemini:
+  api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-3.1-flash-lite}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: jdbc:postgresql://localhost:${POSTGRES_PORT:5432}/${POSTGRES_DB:ddingchun}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:${POSTGRES_PORT:5432}/${POSTGRES_DB:ddingchun}
+    username: ${POSTGRES_USER:postgres}
+    password: ${POSTGRES_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver

@@ -1,5 +1,7 @@
 package com.lionking.ddingchun.search.service;
 
+import com.lionking.ddingchun.crawler.domain.TaggingStatus;
+import com.lionking.ddingchun.crawler.repository.NoticeAiTaggingRepository;
 import com.lionking.ddingchun.post.entity.Post;
 import com.lionking.ddingchun.post.repository.PostRepository;
 import com.lionking.ddingchun.search.dto.SearchResponse;
@@ -7,10 +9,15 @@ import com.lionking.ddingchun.search.dto.SearchResultItem;
 import com.lionking.ddingchun.search.exception.InvalidSearchConditionException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +25,23 @@ public class SearchService {
 
     private static final int MAX_PAGE_SIZE = 100;
 
+    /*
+     * 관심 태그(한글) 클릭 검색이 학교 공지의 AI 카테고리(영문)에도
+     * 걸리도록 하는 매핑. Gemini가 생성하는 자유 태그 문구가 제각각이라
+     * 제목/요약/태그 LIKE 검색만으로는 같은 카테고리 공지를 다 못 찾는 문제를 보완한다.
+     */
+    private static final Map<String, String> CATEGORY_KEYWORD_MAP =
+            Map.of(
+                    "공모전", "CONTEST",
+                    "장학금", "SCHOLARSHIP",
+                    "축제", "FESTIVAL",
+                    "동아리", "CLUB",
+                    "전시", "EXHIBITION",
+                    "취업", "CAREER"
+            );
+
     private final PostRepository postRepository;
+    private final NoticeAiTaggingRepository noticeAiTaggingRepository;
 
     @Transactional(readOnly = true)
     public SearchResponse search(
@@ -42,14 +65,76 @@ public class SearchService {
 
         String normalizedKeyword = keyword.trim();
 
+        /*
+         * 모집글 검색
+         */
         Page<Post> postPage =
                 postRepository.searchByKeyword(
                         normalizedKeyword,
-                        pageable
+                        Pageable.unpaged()
+                );
+
+        List<SearchResultItem> combinedResults =
+                new ArrayList<>();
+
+        combinedResults.addAll(
+                postPage.getContent()
+                        .stream()
+                        .map(SearchResultItem::fromPost)
+                        .toList()
+        );
+
+        /*
+         * Gemini 태깅이 완료된 학교 공지 검색
+         */
+        String category =
+                CATEGORY_KEYWORD_MAP.get(normalizedKeyword);
+
+        combinedResults.addAll(
+                noticeAiTaggingRepository
+                        .searchByKeyword(
+                                normalizedKeyword,
+                                category,
+                                TaggingStatus.COMPLETED
+                        )
+                        .stream()
+                        .map(
+                                SearchResultItem
+                                        ::fromNoticeAiTagging
+                        )
+                        .toList()
+        );
+
+        /*
+         * 모집글과 공지를 합친 후 통합 페이지 처리
+         */
+        long requestedStart =
+                (long) page * size;
+
+        int start =
+                (int) Math.min(
+                        requestedStart,
+                        combinedResults.size()
+                );
+
+        int end =
+                Math.min(
+                        start + size,
+                        combinedResults.size()
+                );
+
+        List<SearchResultItem> pageContent =
+                combinedResults.subList(
+                        start,
+                        end
                 );
 
         Page<SearchResultItem> resultPage =
-                postPage.map(SearchResultItem::fromPost);
+                new PageImpl<>(
+                        pageContent,
+                        pageable,
+                        combinedResults.size()
+                );
 
         return SearchResponse.from(resultPage);
     }
