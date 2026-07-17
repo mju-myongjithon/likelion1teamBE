@@ -1,16 +1,62 @@
 package com.lionking.ddingchun.post.repository;
 
 import com.lionking.ddingchun.post.entity.Post;
+import com.lionking.ddingchun.post.entity.PostCampus;
+import com.lionking.ddingchun.post.entity.PostCategory;
+import com.lionking.ddingchun.post.entity.PostStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface PostRepository extends JpaRepository<Post, Long> {
+public interface PostRepository
+        extends JpaRepository<Post, Long> {
 
-    /*
-     * 제목, 본문, 태그 중 하나라도 검색어를 포함하면 조회한다.
+    /**
+     * 게시글 목록 필터 조회
+     *
+     * category, campus, status가 null이면
+     * 해당 조건은 적용하지 않는다.
+     */
+    @Query(
+            value = """
+                    SELECT p
+                    FROM Post p
+                    WHERE (:category IS NULL
+                           OR p.category = :category)
+                      AND (:campus IS NULL
+                           OR p.campus = :campus)
+                      AND (:status IS NULL
+                           OR p.status = :status)
+                    """,
+            countQuery = """
+                    SELECT COUNT(p)
+                    FROM Post p
+                    WHERE (:category IS NULL
+                           OR p.category = :category)
+                      AND (:campus IS NULL
+                           OR p.campus = :campus)
+                      AND (:status IS NULL
+                           OR p.status = :status)
+                    """
+    )
+    Page<Post> findAllWithFilters(
+            @Param("category")
+            PostCategory category,
+
+            @Param("campus")
+            PostCampus campus,
+
+            @Param("status")
+            PostStatus status,
+
+            Pageable pageable
+    );
+
+    /**
+     * 제목, 본문, 태그 중 하나라도
+     * 검색어를 포함하면 조회한다.
      */
     @Query(
             value = """

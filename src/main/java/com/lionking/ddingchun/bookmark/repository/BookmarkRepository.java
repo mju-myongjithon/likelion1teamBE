@@ -28,4 +28,8 @@ public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
             BookmarkTargetType targetType,
             Long targetId
     );
+    long deleteAllByTargetTypeAndTargetId(
+        BookmarkTargetType targetType,
+        Long targetId
+    );
 }
