@@ -18,4 +18,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             LocalDateTime after,
             Long senderId
     );
+
+    void deleteByChatRoom_Id(Long chatRoomId);
 }

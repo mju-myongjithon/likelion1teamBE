@@ -18,4 +18,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
      * 내가 속한 채팅방 목록. 정렬은 서비스에서 마지막 메시지 기준으로 처리한다.
      */
     List<ChatRoomMember> findByUser_Id(Long userId);
+
+    void deleteByChatRoom_Id(Long chatRoomId);
 }

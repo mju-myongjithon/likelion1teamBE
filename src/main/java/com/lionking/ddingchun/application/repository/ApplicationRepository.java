@@ -26,4 +26,6 @@ public interface ApplicationRepository
     List<Application> findByPost_IdOrderByAppliedAtDesc(
             Long postId
     );
+
+    void deleteByPost_Id(Long postId);
 }

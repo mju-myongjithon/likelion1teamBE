@@ -1,7 +1,11 @@
 package com.lionking.ddingchun.post.service;
 
+import com.lionking.ddingchun.application.repository.ApplicationRepository;
 import com.lionking.ddingchun.bookmark.entity.BookmarkTargetType;
 import com.lionking.ddingchun.bookmark.repository.BookmarkRepository;
+import com.lionking.ddingchun.chat.repository.ChatMessageRepository;
+import com.lionking.ddingchun.chat.repository.ChatRoomMemberRepository;
+import com.lionking.ddingchun.chat.repository.ChatRoomRepository;
 import com.lionking.ddingchun.post.dto.PostCreateRequest;
 import com.lionking.ddingchun.post.dto.PostCreateResponse;
 import com.lionking.ddingchun.post.dto.PostDetailResponse;
@@ -36,6 +40,10 @@ public class PostService {
 
     private final PostRepository postRepository;
     private final BookmarkRepository bookmarkRepository;
+    private final ApplicationRepository applicationRepository;
+    private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final ChatMessageRepository chatMessageRepository;
     private final UserRepository userRepository;
 
     /**
@@ -401,22 +409,27 @@ public PostDetailResponse closePost(
  * 작성자 본인만 삭제할 수 있다.
  */
 @Transactional
-public void deletePost(
-        Long postId,
-        Long authorId
-) {
+public void deletePost(Long postId, Long authorId) {
     Post post = postRepository
             .findById(postId)
             .orElseThrow(PostNotFoundException::new);
 
     validatePostAuthor(post, authorId);
 
-    bookmarkRepository
-            .deleteAllByTargetTypeAndTargetId(
-                    BookmarkTargetType.POST,
-                    postId
-            );
+    // 1. 채팅방이 있으면 메시지 → 참여자 → 채팅방 순서로 먼저 삭제
+    chatRoomRepository.findByPost_Id(postId).ifPresent(chatRoom -> {
+        chatMessageRepository.deleteByChatRoom_Id(chatRoom.getId());
+        chatRoomMemberRepository.deleteByChatRoom_Id(chatRoom.getId());
+        chatRoomRepository.delete(chatRoom);
+    });
 
+    // 2. 신청 내역 삭제
+    applicationRepository.deleteByPost_Id(postId);
+
+    // 3. 찜 삭제 (기존 코드)
+    bookmarkRepository.deleteAllByTargetTypeAndTargetId(BookmarkTargetType.POST, postId);
+
+    // 4. 마지막으로 게시글 삭제
     postRepository.delete(post);
 }
 }
